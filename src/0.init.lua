@@ -15,6 +15,6 @@ end
 
 function _draw()
  rectfill(0,0,127,127,5)
- circfill(x,y,7,c)
+ spr(1,x,y)
 end
 
