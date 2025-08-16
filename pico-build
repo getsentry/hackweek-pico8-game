@@ -1,0 +1,4 @@
+#!/bin/sh
+# wrapper around pico-build because of https://github.com/ianjsikes/pico-build/issues/3
+#
+exec node --experimental-modules --no-warnings ./node_modules/.bin/pico-build "$@"
