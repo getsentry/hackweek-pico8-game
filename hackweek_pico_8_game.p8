@@ -1,7 +1,6 @@
 pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
---hackweek-pico8-game
 -- vim: sw=2 ts=2 et
 
 x=64
@@ -37,22 +36,48 @@ function _init()
 end
 
 function _update()
-    if (btn(0)) then x-=1 end
-    if (btn(1)) then x+=1 end
-    if (btn(2)) then y-=1 end
-    if (btn(3)) then y+=1 end
-    if (btn(4)) then y-=4 end
-    if (btn(5)) then c=64 end
+  if clock == 0 then
+    clock = 1
+  else
+    clock = 0
+  end
 
-    -- edge collision
-    x = mid(0, x, 127)
-    y = mid(0, y, 127)
+  if clock == 0 then
+    for y,data in pairs(enemies) do
+      data.x_pos += data.dir
+      if data.x_pos < 0 or data.x_pos > 128 - 8 then
+        data.dir *= -1
+      end
+    end
+  end
 
+  if btn(4) and btn(5) then
+    y -= 1
+  end
+
+  if (btn(4)) then x-=1 end
+  if (btn(5)) then x+=1 end
+
+  -- edge collision
+  x = mid(0, x, 127)
+  y = mid(0, y, 127)
 end
 
 function _draw()
-    rectfill(0,0,127,127,5)
-    spr(1,x,y)
+  rectfill(0,0,127,127,bg_color)
+  for y,gaps in pairs(rows) do
+    row_y = y * row_height + row_height
+    rectfill(0,row_y,127,row_y + 1,100)
+    for _,gap in pairs(gaps) do
+      rectfill(gap,row_y,gap + gap_width,row_y + 1,bg_color)
+    end
+  end
+
+  for y,data in pairs(enemies) do
+    spr(2,data.x_pos, y * row_height + 4)
+  end
+
+  spr(1,x,y)
 end
 __gfx__
 00000000000220007776677700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
