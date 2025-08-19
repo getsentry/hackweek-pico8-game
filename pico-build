@@ -1,4 +1,5 @@
 #!/bin/sh
 # wrapper around pico-build because of https://github.com/ianjsikes/pico-build/issues/3
 #
-exec node --experimental-modules --no-warnings ./node_modules/.bin/pico-build "$@"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec node --experimental-modules --no-warnings "$DIR/node_modules/.bin/pico-build" "$@"

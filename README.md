@@ -1,22 +1,28 @@
-# A PICO-8 game
+# PICO-8 Games
 
-Exploring PICO-8 for hackweek.
+## Quick Start
 
-## How to build
-
-```
-npm i
-./pico-build build --watch
-
-# in another window:
-.../pico8 ./hackweek_pico_8_game.p8
-
-# pico-build auto-builds the cartridge
-# use cmd-R to reload it in pico8
+```bash
+npm install                               # Install dependencies
+./scripts/build.sh hackweek-game --watch  # Build & watch for changes
+./scripts/run.sh hackweek-game            # Launch in PICO-8
 ```
 
-## How to play
+## Commands
 
-You are the Santry logo and need to dodge the bugs.
+Build: `./scripts/build.sh <game-name> [--watch]`  
+Run: `./scripts/run.sh <game-name>`  
+Export: `./scripts/export.sh <game-name>`
 
-The goal is to make it to the top. Controls are only X and O buttons (Z and X), to move left and right. Press both at once to move up.
+Games: `hackweek-game`, `platformer`  
+Exports go to `exports/` directory
+
+## How to Play
+
+### Hackweek Game
+You are the Sentry logo and need to dodge the bugs. The goal is to make it to the top. 
+- Controls: X and O buttons (Z and X keys) to move left and right
+- Press both buttons at once to move up
+
+### Platformer
+An AI-generated platformer with standard platforming mechanics.
