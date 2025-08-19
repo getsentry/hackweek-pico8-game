@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <style>
 body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
-.top { padding: 10px; background: #eee; }
-.mid { flex: 1; }
-iframe { width: 100%; height: 100%; border: none; }
+header { padding: 10px; background: #eee; }
+iframe { flex: 1; border: none; }
 hr.horizontal {
     display: inline;
     border: none;
@@ -13,7 +12,7 @@ hr.horizontal:after {
 }
 </style>
 
-<div class="top">
+<header>
 <a href="https://github.com/getsentry/hackweek-pico8-game">GitHub</a>
 <hr class=horizontal>
 <strong>Games:</strong>
@@ -25,11 +24,9 @@ PICO-8 buttons X + O are mapped to keyboard <code>Z</code> + <code>X</code>. Arr
 <hr class=horizontal>
 <strong>Custom controls:</strong>
 <button id=x_button>Click X</button>
-</div>
+</header>
 
-<div class="mid">
-<iframe name=game></iframe>
-</div>
+<iframe class=mid name=game></iframe>
 
 <script>
     // will be patched in by child frame
