@@ -1,5 +1,7 @@
 # PICO-8 Games
 
+Exploring PICO-8 for hackweek.
+
 ## Quick Start
 
 ```bash

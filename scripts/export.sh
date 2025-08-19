@@ -33,3 +33,5 @@ mkdir -p exports
 # Export to HTML
 echo "Exporting $GAME to exports/$GAME.html..."
 "$PICO8" -export "exports/$GAME.html" "$GAME_DIR/$CART"
+
+echo '<script>parent.picoWin = window;</script>' >> "exports/$GAME.html"

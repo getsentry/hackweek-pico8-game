@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<style>
+body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
+.top { padding: 10px; background: #eee; }
+.mid { flex: 1; padding: 10px; }
+.bottom { padding: 10px; background: #eee; text-align: center; }
+iframe { width: 100%; height: 100%; border: none; }
+</style>
+
+<div class="top">
+<strong>Games:</strong>
+<a href=exports/platformer.html target=game>platformer</a>
+<a href=exports/hackweek-game.html target=game>hackweek-game</a>
+</div>
+
+<div class="mid">
+<iframe name=game></iframe>
+</div>
+
+<div class="bottom">
+<a href="https://github.com/untitaker/hackweek-pico8-game">GitHub</a>
+<button id=x_button>Click X</button>
+</div>
+
+<script>
+    // will be patched in by child frame
+    var picoWin;
+
+    document.getElementById("x_button").onmousedown = () => {
+        picoWin.pico8_buttons[0] |= 0x10;
+    }
+
+    document.getElementById("x_button").onmouseup = () => {
+        picoWin.pico8_buttons[0] &= ~0x10;
+    }
+</script>
