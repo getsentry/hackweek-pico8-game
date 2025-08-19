@@ -1,7 +1,8 @@
 <!DOCTYPE html>
+<title>Sentry Hackweek PICO-8 games</title>
 <style>
 body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
-header { font-size: 12px; background: #eee; white-space: nowrap; overflow-x: scroll }
+header { padding: 10px; background: #eee }
 iframe { flex: 1; border: none; }
 hr.horizontal {
     display: inline;
@@ -16,8 +17,8 @@ hr.horizontal:after {
 <a href="https://github.com/getsentry/hackweek-pico8-game">GitHub</a>
 <hr class=horizontal>
 <strong>Games:</strong>
-<a href=exports/platformer.html target=game>platformer</a>
-<a href=exports/santry-maze.html target=game>santry-maze</a>
+<a class=gamelink href=exports/platformer.html target=game>platformer</a>
+<a class=gamelink href=exports/santry-maze.html target=game>santry-maze</a>
 <hr class=horizontal>
 <strong>Controls:</strong>
 PICO-8 buttons X + O are mapped to keyboard <code>Z</code> + <code>X</code>. Arrow keys for movement. <code>Enter</code> to open menu.
@@ -39,4 +40,10 @@ PICO-8 buttons X + O are mapped to keyboard <code>Z</code> + <code>X</code>. Arr
     document.getElementById("x_button").onmouseup = () => {
         picoWin.pico8_buttons[0] &= ~0x10;
     }
+
+    Array.from(document.getElementsByClassName("gamelink")).map(elem => {
+        elem.onclick = () => {
+            document.getElementsByTagName("header")[0].style = "display:none";
+        };
+    });
 </script>
