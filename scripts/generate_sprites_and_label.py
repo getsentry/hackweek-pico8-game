@@ -1,3 +1,8 @@
+#!/usr/bin/env uv run
+# /// script
+# dependencies = ["pillow"]
+# ///
+
 from PIL import Image
 import os
 import shutil
