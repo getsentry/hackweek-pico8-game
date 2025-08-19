@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(event) {
         for (const [key, value] of Object.entries(barbiePhoneMap)) {
           if (event.key === key) {
-            picoWin.pico8buttons[0] |= value;
+            pico8buttons[0] |= value;
             break;
           }
         }
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keyup', function(event) {
         for (const [key, value] of Object.entries(barbiePhoneMap)) {
           if (event.key === key) {
-            picoWin.pico8buttons[0] &= ~value;
+            pico8buttons[0] &= ~value;
             break;
           }
         }
