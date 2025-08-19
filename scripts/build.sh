@@ -42,5 +42,5 @@ else
     mkdir -p exports
     echo "Exporting $GAME to exports/$GAME.html..."
     "$PICO8" -export "exports/$GAME.html" "$GAME_DIR/$CART"
-    echo '<script>parent.picoWin = window;</script>' >> "exports/$GAME.html"
+    echo '<script src=./custom.js></script>' >> "exports/$GAME.html"
 fi
