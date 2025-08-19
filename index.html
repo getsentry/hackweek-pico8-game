@@ -2,27 +2,33 @@
 <style>
 body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
 .top { padding: 10px; background: #eee; }
-.mid { flex: 1; padding: 10px; }
-.bottom { padding: 10px; background: #eee; text-align: center; }
+.mid { flex: 1; }
 iframe { width: 100%; height: 100%; border: none; }
+hr.horizontal {
+    display: inline;
+    border: none;
+}
+hr.horizontal:after {
+    content: " | ";
+}
 </style>
 
 <div class="top">
+<a href="https://github.com/getsentry/hackweek-pico8-game">GitHub</a>
+<hr class=horizontal>
 <strong>Games:</strong>
 <a href=exports/platformer.html target=game>platformer</a>
 <a href=exports/santry-maze.html target=game>santry-maze</a>
+<hr class=horizontal>
+<strong>Controls:</strong>
+<code>Z</code> + <code>X</code> + Arrow keys for gameplay. <code>Enter</code> to open menu.
+<hr class=horizontal>
+<strong>Custom controls:</strong>
+<button id=x_button>Click X</button>
 </div>
 
 <div class="mid">
 <iframe name=game></iframe>
-</div>
-
-<div class="bottom">
-<a href="https://github.com/getsentry/hackweek-pico8-game">GitHub</a>
-<button id=x_button>Click X</button>
-
-<strong>Controls:</strong>
-Z + X + Arrow keys for gameplay. Enter to open menu.
 </div>
 
 <script>
