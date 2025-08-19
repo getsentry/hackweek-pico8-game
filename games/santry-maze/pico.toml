@@ -1,7 +1,7 @@
 author = ""
-cart = "hackweek_pico_8_game.p8"
+cart = "santry_maze.p8"
 description = ""
-name = "hackweek-game"
+name = "santry-maze"
 open_pico = false
 src_dir = "src"
 version = "1.0.0"

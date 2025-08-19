@@ -3,7 +3,7 @@
 if [ -z "$1" ]; then
     echo "Usage: ./build.sh <game-name> [--watch]"
     echo "Available games:"
-    echo "  - hackweek-game"
+    echo "  - santry-maze"
     echo "  - platformer"
     exit 1
 fi

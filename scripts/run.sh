@@ -3,7 +3,7 @@
 if [ -z "$1" ]; then
     echo "Usage: ./run.sh <game-name>"
     echo "Available games:"
-    echo "  - hackweek-game"
+    echo "  - santry-maze"
     echo "  - platformer"
     exit 1
 fi
@@ -18,8 +18,8 @@ if [ ! -d "$GAME_DIR" ]; then
 fi
 
 # Determine cart name from pico.toml
-if [ "$GAME" = "hackweek-game" ]; then
-    CART="hackweek_pico_8_game.p8"
+if [ "$GAME" = "santry-maze" ]; then
+    CART="santry_maze.p8"
 elif [ "$GAME" = "platformer" ]; then
     CART="platformer.p8"
 else
