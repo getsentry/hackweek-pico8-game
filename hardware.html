@@ -1,0 +1,23 @@
+<html>
+    <head><title>hardware detection page</title></head>
+    
+    <body>
+        <div id="user-agent"></div>
+        <div id="key-display"></div>
+
+    </body>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userAgentDiv = document.getElementById('user-agent');
+            userAgentDiv.textContent = 'User Agent: ' + navigator.userAgent;
+            
+            const keyDisplayDiv = document.getElementById('key-display');
+            
+            document.addEventListener('keydown', function(event) {
+                keyDisplayDiv.textContent = 'Key pressed: ' + event.key + ' (Code: ' + event.code + ', KeyCode: ' + event.keyCode + ')';
+            });
+        });
+    </script>
+</html>
