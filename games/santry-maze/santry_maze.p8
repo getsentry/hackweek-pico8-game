@@ -9,8 +9,9 @@ __lua__
 state=-1
 game_over_flag=false
 sfx_playing=false
-last_volume=0
 current_level=1
+goal_animation_timer=0
+goal_animation_active=false
 
 player = { x_pos = 64, y_pos = 127 - 8, width = 8, height = 8 }
 walls = {}
@@ -21,6 +22,8 @@ num_enemies = 8
 row_height = 12
 gap_width = 10
 bg_color = 6
+player_color = 1
+rainbow_colors = {8,9,10,11,12,13,14,15}  -- red,orange,yellow,green,blue,indigo,pink,peach
 
 function sign(x)
   -- can't use int division because of femto8
@@ -32,7 +35,8 @@ function reset_game()
   enemies = {}
   player = { x_pos = 64, y_pos = 127 - 8, width = 8, height = 8 }
   sfx_playing = false
-  last_volume = 0
+  goal_animation_timer = 0
+  goal_animation_active = false
   
   wall_i = 1
   for i = 1,num_enemies do
@@ -135,12 +139,23 @@ function _update()
   player.y_pos = mid(0, player.y_pos, 127 - player.height)
   
   -- win condition: reached the top
-  if player.y_pos <= 0 then
-    -- advance to next level
-    current_level += 1
+  if player.y_pos <= 0 and not goal_animation_active then
+    -- start goal animation
+    goal_animation_active = true
+    goal_animation_timer = 0
     sfx(2)  -- play happy level up sound
-    reset_game()
     return
+  end
+  
+  -- handle goal animation
+  if goal_animation_active then
+    goal_animation_timer += 1
+    if goal_animation_timer >= 60 then  -- 1 second at 60fps
+      -- advance to next level
+      current_level += 1
+      reset_game()
+      return
+    end
   end
 
   -- enemy collision and proximity
@@ -159,30 +174,24 @@ function _update()
       current_level = 1
       state = -1
       music(0)
-      sfx(-1)  -- stop proximity sound
+      sfx(-1)  -- stop all sounds
       sfx_playing = false
-      last_volume = 0
+      return  -- exit immediately, don't continue with proximity sound
     end
   end
   
-  -- play proximity sound based on distance
+  -- play proximity sound based on distance (simple on/off)
   if closest_dist < 16 then
-    -- calculate volume based on distance (closer = louder)
-    local volume = flr((16 - closest_dist) / 16 * 7)  -- volume 0-7
-    
-    -- restart sound with new volume if distance changed significantly
-    if not sfx_playing or abs(volume - last_volume) > 1 then
-      sfx(-1)  -- stop current sound
-      sfx(1, -1, 0, volume)  -- play with distance-based volume
+    -- play sound if not already playing
+    if not sfx_playing then
+      sfx(1, -1)  -- play proximity rumble on loop
       sfx_playing = true
-      last_volume = volume
     end
   else
     -- stop rumble when far away
     if sfx_playing then
-      sfx(-1)
+      sfx(-1)  -- stop all sounds
       sfx_playing = false
-      last_volume = 0
     end
   end
 
@@ -261,6 +270,16 @@ function _draw()
     local px = player.x_pos + 4
     local py = player.y_pos + 4
     
+    -- draw rainbow background for completed rows
+    for i = 1, num_enemies do
+      local row_y = (i+1) * row_height
+      if py < row_y then  -- player has passed this row
+        local color_index = (i - 1) % 8 + 1
+        local rainbow_color = rainbow_colors[color_index]
+        rectfill(0, row_y, 127, row_y + row_height - 1, rainbow_color)
+      end
+    end
+    
     -- draw walls
     for wall in all(walls) do
       rectfill(wall.x_pos,wall.y_pos,wall.x_pos + wall.width - 1,wall.y_pos + wall.height - 1,100)
@@ -294,22 +313,32 @@ function _draw()
       end
     end
     
-    -- draw player
-    spr(1,player.x_pos,player.y_pos)
+    -- draw player (with rainbow effect during goal animation)
+    if goal_animation_active then
+      local color_index = flr(goal_animation_timer / 4) % 8 + 1
+      local rainbow_color = rainbow_colors[color_index]
+      
+      -- draw player sprite with color replacement
+      pal(player_color, rainbow_color)  -- replace player color with rainbow color
+      spr(1,player.x_pos,player.y_pos)
+      pal()  -- reset palette
+    else
+      spr(1,player.x_pos,player.y_pos)
+    end
     
     -- display level
     print("level " .. current_level, 2, 10, 7)  -- moved down to avoid goal band
   end
 end
 __gfx__
-00000000000220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000002002000005500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000002000588885000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000022000200558855000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000020200200088880000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000002020020558855000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000200202020588885000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000222200220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000001110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000001001000005500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000001000588885000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000011000100558855000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000010100100088880000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000001010010558855000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000100101010588885000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000111100110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __label__
 77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777
 77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777
