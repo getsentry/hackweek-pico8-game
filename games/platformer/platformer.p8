@@ -47,14 +47,25 @@ add(collectibles, {x=55, y=70, w=4, h=4, collected=false, color=11})
 add(collectibles, {x=85, y=50, w=4, h=4, collected=false, color=11})
 
 -- 🎯 game state
+title_screen = true  -- true = title screen, false = playing
 score = 0
 game_over = false
 level_complete = false
 
 -- 🎮 input and movement
 function _update()
+  if title_screen then
+    -- title screen - wait for button press
+    if btn(4) then  -- press ❎ to start
+      title_screen = false
+      reset_game()
+    end
+    return
+  end
+  
   if game_over then
     if btn(4) then  -- restart on button press
+      title_screen = true
       reset_game()
     end
     return
@@ -126,44 +137,58 @@ end
 
 -- 🖼️ render everything
 function _draw()
-  cls(0)  -- black background
-  
-  -- draw platforms
-  for p in all(platforms) do
-    rectfill(p.x, p.y, p.x + p.w - 1, p.y + p.h - 1, 3)  -- green
-  end
-  
-  -- draw collectibles
-  for c in all(collectibles) do
-    if not c.collected then
-      rectfill(c.x, c.y, c.x + c.w - 1, c.y + c.h - 1, c.color)
+  if title_screen then
+    -- title screen
+    cls(1)  -- blue background
+    rectfill(0, 0, 127, 127, 1)
+    
+    -- title
+    print("STARHOP", 40, 25, 7)
+    print("collect stars, avoid bugs", 20, 45, 6)
+    
+    -- instructions
+    print("press ❎ to start", 28, 70, 6)
+  else
+    -- game screen
+    cls(0)  -- black background
+    
+    -- draw platforms
+    for p in all(platforms) do
+      rectfill(p.x, p.y, p.x + p.w - 1, p.y + p.h - 1, 3)  -- green
     end
-  end
-  
-  -- draw enemies
-  for e in all(enemies) do
-    rectfill(e.x, e.y, e.x + e.w - 1, e.y + e.h - 1, e.color)
-  end
-  
-  -- draw player
-  rectfill(player.x, player.y, player.x + player.width - 1, player.y + player.height - 1, player.color)
-  
-  -- draw UI
-  print("score: " .. score, 2, 2, 7)
-  print("health: " .. player.health, 2, 10, 7)
-  
-  -- game over screen
-  if game_over then
-    rectfill(20, 50, 108, 78, 1)
-    print("game over!", 45, 60, 7)
-    print("press ❎ to restart", 35, 70, 7)
-  end
-  
-  -- level complete screen
-  if level_complete then
-    rectfill(20, 50, 108, 78, 2)
-    print("level complete!", 40, 60, 0)
-    print("press ❎ for next level", 30, 70, 0)
+    
+    -- draw collectibles
+    for c in all(collectibles) do
+      if not c.collected then
+        rectfill(c.x, c.y, c.x + c.w - 1, c.y + c.h - 1, c.color)
+      end
+    end
+    
+    -- draw enemies
+    for e in all(enemies) do
+      rectfill(e.x, e.y, e.x + e.w - 1, e.y + e.h - 1, e.color)
+    end
+    
+    -- draw player
+    rectfill(player.x, player.y, player.x + player.width - 1, player.y + player.height - 1, player.color)
+    
+    -- draw UI
+    print("score: " .. score, 2, 2, 7)
+    print("health: " .. player.health, 2, 10, 7)
+    
+    -- game over screen
+    if game_over then
+      rectfill(20, 50, 108, 78, 1)
+      print("game over!", 45, 60, 7)
+      print("press ❎ to restart", 35, 70, 7)
+    end
+    
+    -- level complete screen
+    if level_complete then
+      rectfill(20, 50, 108, 78, 2)
+      print("level complete!", 40, 60, 0)
+      print("press ❎ for next level", 30, 70, 0)
+    end
   end
 end
 
@@ -241,6 +266,7 @@ function reset_game()
   score = 0
   game_over = false
   level_complete = false
+  title_screen = false  -- make sure we're not in title screen after reset
   
   -- reset collectibles
   collectibles = {}
