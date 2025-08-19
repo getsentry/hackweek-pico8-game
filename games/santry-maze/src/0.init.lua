@@ -10,6 +10,7 @@ current_level=1
 goal_animation_timer=0
 goal_animation_active=false
 movement_timer=0
+start_button_pressed=false
 
 player = { x_pos = 64, y_pos = 127 - 8, width = 8, height = 8 }
 walls = {}
@@ -92,11 +93,14 @@ end
 
 function _update()
   if state == -1 then
-    if btnp(4) and btnp(5) then
+    if btn(4) and btn(5) and not start_button_pressed then
       music(-1)
       reset_game()
       game_over_flag = false
       state = 0
+      start_button_pressed = true
+    elseif not (btn(4) and btn(5)) then
+      start_button_pressed = false
     end
     return
   elseif state == 0 then
