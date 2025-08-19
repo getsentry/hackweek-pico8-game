@@ -1,8 +1,13 @@
 -- vim: sw=2 ts=2 et
 
+-- -1 = title screen
 -- 0/1 = flip/flop (used for slow-mo)
--- 2 = game over
-state=0
+-- 2 = unused (was game over, now goes back to title)
+state=-1
+game_over_flag=false
+sfx_playing=false
+last_volume=0
+current_level=1
 
 player = { x_pos = 64, y_pos = 127 - 8, width = 8, height = 8 }
 walls = {}
@@ -12,19 +17,38 @@ enemies = {}
 num_enemies = 8
 row_height = 12
 gap_width = 10
-bg_color = 7
+bg_color = 6
 
 function sign(x)
   -- can't use int division because of femto8
   return x / abs(x)
 end
 
-function _init()
+function reset_game()
+  walls = {}
+  enemies = {}
+  player = { x_pos = 64, y_pos = 127 - 8, width = 8, height = 8 }
+  sfx_playing = false
+  last_volume = 0
+  
   wall_i = 1
   for i = 1,num_enemies do
     previous_wall = 0
     gap_position = 0
-    num_gaps = flr(rnd(3) + 1)
+    
+    -- determine number of gaps based on level
+    local num_gaps
+    if current_level == 1 then
+      num_gaps = 3  -- level 1: always 3 gaps, no shadows (tutorial)
+    elseif current_level == 2 then
+      num_gaps = 3  -- level 2: always 3 gaps
+    elseif current_level == 3 then
+      num_gaps = flr(rnd(2) + 2)  -- 2-3 gaps
+    elseif current_level == 4 then
+      num_gaps = flr(rnd(2) + 1)  -- 1-2 gaps
+    else
+      num_gaps = 1  -- level 5+ always 1 gap
+    end
     for gap_i = 1,num_gaps do
       -- ensure there's room for this gap and potentially more gaps
       remaining_gaps = num_gaps - gap_i + 1
@@ -56,8 +80,18 @@ function _init()
   end
 end
 
+function _init()
+  music(0)
+end
+
 function _update()
-  if state == 2 then
+  if state == -1 then
+    if btnp(4) and btnp(5) then
+      music(-1)
+      reset_game()
+      game_over_flag = false
+      state = 0
+    end
     return
   elseif state == 0 then
     state = 1
@@ -96,13 +130,56 @@ function _update()
   -- edge collision
   player.x_pos = mid(0, player.x_pos, 127 - player.width)
   player.y_pos = mid(0, player.y_pos, 127 - player.height)
+  
+  -- win condition: reached the top
+  if player.y_pos <= 0 then
+    -- advance to next level
+    current_level += 1
+    sfx(2)  -- play happy level up sound
+    reset_game()
+    return
+  end
 
-  -- enemy collision
+  -- enemy collision and proximity
+  local closest_dist = 999
   for enemy in all(enemies) do
+    -- calculate distance to enemy
+    local dx = enemy.x_pos - player.x_pos
+    local dy = enemy.y_pos - player.y_pos
+    local dist = sqrt(dx*dx + dy*dy)
+    closest_dist = min(closest_dist, dist)
+    
     -- padding=2 => can overlap by 1-2 pixels
     if collides(enemy, player, 2) then
-      -- game over
-      state = 2
+      -- game over - reset to level 1
+      game_over_flag = true
+      current_level = 1
+      state = -1
+      music(0)
+      sfx(-1)  -- stop proximity sound
+      sfx_playing = false
+      last_volume = 0
+    end
+  end
+  
+  -- play proximity sound based on distance
+  if closest_dist < 16 then
+    -- calculate volume based on distance (closer = louder)
+    local volume = flr((16 - closest_dist) / 16 * 7)  -- volume 0-7
+    
+    -- restart sound with new volume if distance changed significantly
+    if not sfx_playing or abs(volume - last_volume) > 1 then
+      sfx(-1)  -- stop current sound
+      sfx(1, -1, 0, volume)  -- play with distance-based volume
+      sfx_playing = true
+      last_volume = volume
+    end
+  else
+    -- stop rumble when far away
+    if sfx_playing then
+      sfx(-1)
+      sfx_playing = false
+      last_volume = 0
     end
   end
 
@@ -128,20 +205,96 @@ function collides(obj1, obj2, padding)
   return true
 end
 
+function has_line_of_sight(x1, y1, x2, y2)
+  -- check if there's a clear line of sight between two points
+  local dx = abs(x2 - x1)
+  local dy = abs(y2 - y1)
+  local sx = x1 < x2 and 1 or -1
+  local sy = y1 < y2 and 1 or -1
+  local err = dx - dy
+  
+  local x, y = x1, y1
+  
+  while true do
+    -- check if current position intersects with any wall
+    for wall in all(walls) do
+      if x >= wall.x_pos and x < wall.x_pos + wall.width and
+         y >= wall.y_pos and y < wall.y_pos + wall.height then
+        return false
+      end
+    end
+    
+    if x == x2 and y == y2 then
+      return true
+    end
+    
+    local e2 = 2 * err
+    if e2 > -dy then
+      err = err - dy
+      x = x + sx
+    end
+    if e2 < dx then
+      err = err + dx
+      y = y + sy
+    end
+  end
+end
+
 function _draw()
-  if state == 2 then
-    rectfill(0,0,127,127,bg_color)
-    print("GAME OVER", 64, 64, 0)
+  if state == -1 then
+    rectfill(0,0,127,127,1)
+    print("SANTRY MAZE", 40, 40, 7)
+    if game_over_flag then
+      print("GAME OVER!", 44, 54, 8)
+    end
+    print("press x+o to start", 28, 68, 6)
+    print("controls:", 45, 84, 7)
+    print("x = left", 47, 92, 6)
+    print("o = right", 45, 100, 6)
+    print("x+o = up", 45, 108, 6)
   else
     rectfill(0,0,127,127,bg_color)
+    
+    local px = player.x_pos + 4
+    local py = player.y_pos + 4
+    
+    -- draw walls
     for wall in all(walls) do
       rectfill(wall.x_pos,wall.y_pos,wall.x_pos + wall.width - 1,wall.y_pos + wall.height - 1,100)
     end
 
+    -- draw enemies only if visible
     for data in all(enemies) do
       spr(2,data.x_pos, data.y_pos)
     end
 
+    -- draw shadows over walls and enemies
+    -- but only if not level 1 (tutorial)
+    if current_level > 1 then
+      for wall in all(walls) do
+        if wall.y_pos < py then
+          -- wall is above player, cast shadow upward
+          rectfill(wall.x_pos, 0, wall.x_pos + wall.width - 1, wall.y_pos - 1, 0)
+        end
+      end
+    end
+
+    -- draw checkered goal band at top (2 rows)
+    for y=0,1 do
+      for x=0,127,4 do
+        local checker = (flr(x/4) + y) % 2
+        if checker == 0 then
+          rectfill(x, y*4, x+3, y*4+3, 0)  -- black squares
+        else
+          rectfill(x, y*4, x+3, y*4+3, 7)  -- white squares
+        end
+      end
+    end
+    
+    -- draw player
     spr(1,player.x_pos,player.y_pos)
+    
+    -- display level
+    print("level " .. current_level, 2, 10, 7)  -- moved down to avoid goal band
   end
 end
