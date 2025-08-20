@@ -1,12 +1,12 @@
 pico-8 cartridge // http://www.pico-8.com
-version 16
+version 43
 __lua__
 -- 🎮 Platformer Game
 -- A fun 2D platformer with jumping, enemies, and collectibles
 
 -- 📐 game settings
 gravity = 0.5
-jump_power = -8
+jump_power = -6
 player_speed = 2
 screen_w = 128
 screen_h = 128
@@ -37,14 +37,14 @@ add(platforms, {x=10, y=40, w=20, h=4})
 
 -- 👹 enemies
 enemies = {}
-add(enemies, {x=30, y=92, w=6, h=6, vx=1, color=8, health=1})
-add(enemies, {x=90, y=52, w=6, h=6, vx=-1, color=8, health=1})
+add(enemies, {x=30, y=92, w=6, h=6, vx=1, color=8, health=1, sprite=flr(rnd(2))+2})
+add(enemies, {x=90, y=52, w=6, h=6, vx=-1, color=8, health=1, sprite=flr(rnd(2))+2})
 
 -- ⭐ collectibles
 collectibles = {}
-add(collectibles, {x=25, y=90, w=4, h=4, collected=false, color=11})
-add(collectibles, {x=55, y=70, w=4, h=4, collected=false, color=11})
-add(collectibles, {x=85, y=50, w=4, h=4, collected=false, color=11})
+add(collectibles, {x=25, y=90, w=8, h=8, collected=false})
+add(collectibles, {x=55, y=70, w=8, h=8, collected=false})
+add(collectibles, {x=85, y=50, w=8, h=8, collected=false})
 
 -- 🎯 game state
 title_screen = true  -- true = title screen, false = playing
@@ -150,27 +150,27 @@ function _draw()
     print("press ❎ to start", 28, 70, 6)
   else
     -- game screen
-    cls(0)  -- black background
+    cls(6)  -- light-grey
     
     -- draw platforms
     for p in all(platforms) do
-      rectfill(p.x, p.y, p.x + p.w - 1, p.y + p.h - 1, 3)  -- green
+      rectfill(p.x, p.y, p.x + p.w - 1, p.y + p.h - 1, 2)
     end
     
     -- draw collectibles
     for c in all(collectibles) do
       if not c.collected then
-        rectfill(c.x, c.y, c.x + c.w - 1, c.y + c.h - 1, c.color)
+        spr(1, c.x, c.y)
       end
     end
     
     -- draw enemies
     for e in all(enemies) do
-      rectfill(e.x, e.y, e.x + e.w - 1, e.y + e.h - 1, e.color)
+      spr(e.sprite, e.x, e.y)
     end
     
     -- draw player
-    rectfill(player.x, player.y, player.x + player.width - 1, player.y + player.height - 1, player.color)
+    spr(0, player.x, player.y)
     
     -- draw UI
     print("score: " .. score, 2, 2, 7)
@@ -187,7 +187,7 @@ function _draw()
     if level_complete then
       rectfill(20, 50, 108, 78, 2)
       print("level complete!", 40, 60, 0)
-      print("press ❎ for next level", 30, 70, 0)
+      print("press ❎ to continue", 30, 70, 0)
     end
   end
 end
@@ -268,11 +268,25 @@ function reset_game()
   level_complete = false
   title_screen = false  -- make sure we're not in title screen after reset
   
+  -- reset platforms
+  platforms = {}
+  add(platforms, {x=0, y=120, w=128, h=8})
+  add(platforms, {x=20, y=100, w=20, h=4})
+  add(platforms, {x=50, y=80, w=20, h=4})
+  add(platforms, {x=80, y=60, w=20, h=4})
+  add(platforms, {x=110, y=40, w=18, h=4})
+  add(platforms, {x=10, y=40, w=20, h=4})
+  
+  -- reset enemies
+  enemies = {}
+  add(enemies, {x=30, y=92, w=6, h=6, vx=1, color=8, health=1, sprite=flr(rnd(2))+2})
+  add(enemies, {x=90, y=52, w=6, h=6, vx=-1, color=8, health=1, sprite=flr(rnd(2))+2})
+  
   -- reset collectibles
   collectibles = {}
-  add(collectibles, {x=25, y=90, w=4, h=4, collected=false, color=11})
-  add(collectibles, {x=55, y=70, w=4, h=4, collected=false, color=11})
-  add(collectibles, {x=85, y=50, w=4, h=4, collected=false, color=11})
+  add(collectibles, {x=25, y=90, w=8, h=8, collected=false})
+  add(collectibles, {x=55, y=70, w=8, h=8, collected=false})
+  add(collectibles, {x=85, y=50, w=8, h=8, collected=false})
 end
 
 function next_level()
@@ -285,12 +299,24 @@ function next_level()
   add(platforms, {x=70, y=20, w=15, h=4})
   
   -- add more enemies
-  add(enemies, {x=45, y=22, w=6, h=6, vx=1, color=8, health=1})
+  add(enemies, {x=45, y=22, w=6, h=6, vx=1, color=8, health=1, sprite=flr(rnd(2))+2})
   
   -- add more collectibles
-  add(collectibles, {x=42, y=20, w=4, h=4, collected=false, color=11})
-  add(collectibles, {x=72, y=10, w=4, h=4, collected=false, color=11})
+  add(collectibles, {x=42, y=20, w=8, h=8, collected=false})
+  add(collectibles, {x=72, y=10, w=8, h=8, collected=false})
+  add(collectibles, {x=15, y=15, w=8, h=8, collected=false})
+  add(collectibles, {x=95, y=35, w=8, h=8, collected=false})
+  add(collectibles, {x=60, y=5, w=8, h=8, collected=false})
 end
+__gfx__
+00000000000000000ff0ff00000ccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001550000009900000f0f00000ccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011115000009900000f0f0000cc6c6c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+01551100a99aa99a888888880cc6c6cc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+1100111500aaaa0008181880cc1ccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+1015151000aaaa00008c8800001c01c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+15151511099999900008800001c00010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+1110111109900990008008000c00000c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __label__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
