@@ -11,6 +11,33 @@ player_speed = 2
 screen_w = 128
 screen_h = 128
 
+-- 🔊 sound effects
+
+function sfx_collect()
+  -- Happy collection sound - using a more satisfying higher pitch
+  sfx(3)
+end
+
+function sfx_hit()
+  -- Damage sound - using a lower, more "ouch" sounding effect
+  sfx(1)
+end
+
+function sfx_level_complete()
+  -- Victory sound
+  sfx(0)
+end
+
+function sfx_game_over()
+  -- Game over sound
+  -- tbd
+end
+
+function sfx_potion()
+  -- Potion effect sound
+  sfx(2)
+end
+
 -- 👤 player variables
 player = {
   x = 10,
@@ -63,6 +90,7 @@ function _update()
     -- title screen - wait for button press
     if btn(4) then  -- press ❎ to start
       title_screen = false
+      sfx_level_complete()  -- play start sound
       reset_game()
     end
     return
@@ -177,6 +205,7 @@ function _update()
   -- check win condition
   if #collectibles == 0 then
     level_complete = true
+    sfx_level_complete()  -- play level complete sound
   end
   
   -- update potion effects
@@ -334,6 +363,7 @@ function check_collectibles()
       c.collected = true
       score += 100
       del(collectibles, c)
+      sfx_collect()  -- play collection sound
     end
   end
 end
@@ -343,8 +373,10 @@ function check_enemy_collisions()
     if check_collision(player, e) then
       player.health -= 1
       hit_flash_timer = 60  -- flash for 1 second
+      sfx_hit()  -- play hit sound
       if player.health <= 0 then
         game_over = true
+        sfx_game_over()  -- play game over sound
       else
         -- knockback effect
         player.vy = -4
@@ -359,6 +391,7 @@ function check_potion_collisions()
     if check_collision(player, p) then
       apply_potion_effect(p.effect)
       del(potions, p)
+      sfx_potion()  -- play potion sound
     end
   end
 end
@@ -658,4 +691,10 @@ ee00eee0e0e00e00e0e0e0e00000eee0e0e0e0e0ee00e0e000000000000000000000000000000000
 33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
 33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
 33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
+
+__sfx__
+00060000295302e540335500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000200001c04000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000100002e05000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000600002953000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
