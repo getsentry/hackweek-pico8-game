@@ -17,7 +17,6 @@ player = {
   width = 6,
   height = 8,
   on_ground = false,
-  color = 10,  -- yellow
   health = 3
 }
 
@@ -34,8 +33,8 @@ add(platforms, {x=10, y=40, w=20, h=4})
 
 -- 👹 enemies
 enemies = {}
-add(enemies, {x=30, y=92, w=6, h=6, vx=2, color=8, health=1, sprite=flr(rnd(2))+3})
-add(enemies, {x=90, y=52, w=6, h=6, vx=-2, color=8, health=1, sprite=flr(rnd(2))+3})
+add(enemies, {x=30, y=92, w=6, h=6, vx=2, health=1, sprite=flr(rnd(2))+3})
+add(enemies, {x=90, y=52, w=6, h=6, vx=-2, health=1, sprite=flr(rnd(2))+3})
 
 -- ⭐ collectibles
 collectibles = {}
@@ -43,7 +42,7 @@ add(collectibles, {x=25, y=90, w=8, h=8, collected=false})
 add(collectibles, {x=55, y=70, w=8, h=8, collected=false})
 add(collectibles, {x=85, y=50, w=8, h=8, collected=false})
 
--- 🧪 potions (bad effects)
+-- 🧪 potions (good or bad effects)
 potions = {}
 
 -- 🎯 game state
@@ -419,8 +418,8 @@ function reset_game()
   
   -- reset enemies
   enemies = {}
-  add(enemies, {x=30, y=92, w=6, h=6, vx=2, color=8, health=1, sprite=flr(rnd(2))+3})
-  add(enemies, {x=90, y=52, w=6, h=6, vx=-2, color=8, health=1, sprite=flr(rnd(2))+3})
+  add(enemies, {x=30, y=92, w=6, h=6, vx=2, health=1, sprite=flr(rnd(2))+3})
+  add(enemies, {x=90, y=52, w=6, h=6, vx=-2, health=1, sprite=flr(rnd(2))+3})
   
   -- reset collectibles
   collectibles = {}
@@ -453,7 +452,7 @@ function next_level()
   add(platforms, {x=70, y=20, w=15, h=4})
   
   -- add more enemies
-  add(enemies, {x=45, y=22, w=6, h=6, vx=2, color=8, health=1, sprite=flr(rnd(2))+3})
+  add(enemies, {x=45, y=22, w=6, h=6, vx=2, health=1, sprite=flr(rnd(2))+3})
   
   -- add more collectibles
   add(collectibles, {x=42, y=20, w=8, h=8, collected=false})
@@ -466,7 +465,6 @@ function next_level()
   if rnd() < 0.2 then
     local effects = {"speed_boost", "speed_slow", "jump_boost", "reverse_controls", "health_restore"}
     local effect = effects[flr(rnd(#effects))+1]
-    local is_good = effect == "speed_boost" or effect == "jump_boost" or effect == "health_restore"
-    add(potions, {x=flr(rnd(100))+10, y=flr(rnd(80))+20, w=8, h=8, effect=effect, duration=600, is_good=is_good})
+    add(potions, {x=flr(rnd(100))+10, y=flr(rnd(80))+20, w=8, h=8, effect=effect})
   end
 end
