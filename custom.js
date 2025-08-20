@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', function() {
     "6": 0x2,
     "2": 0x4,
     "8": 0x8,
-    "0": 0x20,  // spacebar is x
     "*": 0x10, // * is 0
-    "1": 0x20,
-    "3": 0x10,
+    "0": 0x20,  // spacebar is x
+    "1": 0x10,
+    "3": 0x20,
   }
 
 
