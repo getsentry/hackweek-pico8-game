@@ -92,12 +92,20 @@ function _update()
   
   -- jumping
   if btn(4) and player.on_ground then
-    player.vy = jump_power
+    if player.upside_down then
+      player.vy = -jump_power  -- flip jump direction when upside down
+    else
+      player.vy = jump_power
+    end
     player.on_ground = false
   end
   
   -- apply gravity
-  player.vy += gravity
+  if player.upside_down then
+    player.vy -= gravity  -- flip gravity when upside down
+  else
+    player.vy += gravity
+  end
   
   -- update player position
   player.x += player.vx
@@ -107,13 +115,26 @@ function _update()
   player.on_ground = false
   for p in all(platforms) do
     if check_collision(player, p) then
-      if player.vy > 0 then  -- falling down
-        player.y = p.y - player.height
-        player.vy = 0
-        player.on_ground = true
-      elseif player.vy < 0 then  -- jumping up
-        player.y = p.y + p.h
-        player.vy = 0
+      if player.upside_down then
+        -- upside down collision logic
+        if player.vy < 0 then  -- falling "up"
+          player.y = p.y + p.h
+          player.vy = 0
+          player.on_ground = true
+        elseif player.vy > 0 then  -- jumping "down"
+          player.y = p.y - player.height
+          player.vy = 0
+        end
+      else
+        -- normal collision logic
+        if player.vy > 0 then  -- falling down
+          player.y = p.y - player.height
+          player.vy = 0
+          player.on_ground = true
+        elseif player.vy < 0 then  -- jumping up
+          player.y = p.y + p.h
+          player.vy = 0
+        end
       end
     end
   end
@@ -121,10 +142,21 @@ function _update()
   -- keep player on screen
   if player.x < 0 then player.x = 0 end
   if player.x > screen_w - player.width then player.x = screen_w - player.width end
-  if player.y > screen_h - player.height then 
-    player.y = screen_h - player.height
-    player.vy = 0
-    player.on_ground = true
+  
+  if player.upside_down then
+    -- upside down screen boundaries
+    if player.y < 0 then 
+      player.y = 0
+      player.vy = 0
+      player.on_ground = true
+    end
+  else
+    -- normal screen boundaries
+    if player.y > screen_h - player.height then 
+      player.y = screen_h - player.height
+      player.vy = 0
+      player.on_ground = true
+    end
   end
   
   -- update enemies
@@ -230,6 +262,10 @@ function _draw()
     end
     if player.reverse_controls then
       print("reverse: " .. flr(player.reverse_controls/60) .. "s", 2, y_offset, 8)
+      y_offset += 8
+    end
+    if player.upside_down then
+      print("upside down: " .. flr(player.upside_down/60) .. "s", 2, y_offset, 8)
       y_offset += 8
     end
     
@@ -344,6 +380,10 @@ function apply_potion_effect(effect)
     player.reverse_controls = 600
     status_message = "REVERSE CONTROLS!"
     status_timer = 120
+  elseif effect == "upside_down" then
+    player.upside_down = 600
+    status_message = "UPSIDE DOWN!"
+    status_timer = 120
   elseif effect == "health_restore" then
     player.health = min(player.health + 1, 3)
     status_message = "HEALTH +1!"
@@ -384,6 +424,14 @@ function update_potion_effects()
     player.reverse_controls -= 1
     if player.reverse_controls <= 0 then
       player.reverse_controls = nil
+    end
+  end
+  
+  -- upside down effect
+  if player.upside_down then
+    player.upside_down -= 1
+    if player.upside_down <= 0 then
+      player.upside_down = nil
     end
   end
   
@@ -433,6 +481,7 @@ function reset_game()
   player.speed_slow = nil
   player.jump_boost = nil
   player.reverse_controls = nil
+  player.upside_down = nil
   player_speed = 2
   jump_power = -6
   
@@ -463,7 +512,7 @@ function next_level()
   
   -- chance to spawn a potion (20% chance)
   if rnd() < 0.2 then
-    local effects = {"speed_boost", "speed_slow", "jump_boost", "reverse_controls", "health_restore"}
+    local effects = {"speed_boost", "speed_slow", "jump_boost", "reverse_controls", "upside_down", "health_restore"}
     local effect = effects[flr(rnd(#effects))+1]
     add(potions, {x=flr(rnd(100))+10, y=flr(rnd(80))+20, w=8, h=8, effect=effect})
   end
