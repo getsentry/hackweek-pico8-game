@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
   // 0x1 left, 0x2 right, 0x4 up, 0x8 down, 0x10 O, 0x20 X, 0x40 menu
-  if (navigator.userAgent.includes("HMD Barbie Phone") || navigator.userAgent.includes("KaiOS")) {
+  if (navigator.userAgent.includes("HMD Barbie Phone") || navigator.userAgent.includes("KAIOS")) {
     document.addEventListener('keydown', function(event) {
         for (const [key, value] of Object.entries(barbiePhoneMap)) {
           if (event.key === key) {
