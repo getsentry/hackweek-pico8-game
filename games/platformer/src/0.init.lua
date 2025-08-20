@@ -34,8 +34,8 @@ add(platforms, {x=10, y=40, w=20, h=4})
 
 -- 👹 enemies
 enemies = {}
-add(enemies, {x=30, y=92, w=6, h=6, vx=1, color=8, health=1, sprite=flr(rnd(2))+2})
-add(enemies, {x=90, y=52, w=6, h=6, vx=-1, color=8, health=1, sprite=flr(rnd(2))+2})
+add(enemies, {x=30, y=92, w=6, h=6, vx=2, color=8, health=1, sprite=flr(rnd(2))+3})
+add(enemies, {x=90, y=52, w=6, h=6, vx=-2, color=8, health=1, sprite=flr(rnd(2))+3})
 
 -- ⭐ collectibles
 collectibles = {}
@@ -43,11 +43,17 @@ add(collectibles, {x=25, y=90, w=8, h=8, collected=false})
 add(collectibles, {x=55, y=70, w=8, h=8, collected=false})
 add(collectibles, {x=85, y=50, w=8, h=8, collected=false})
 
+-- 🧪 potions (bad effects)
+potions = {}
+
 -- 🎯 game state
 title_screen = true  -- true = title screen, false = playing
 score = 0
 game_over = false
 level_complete = false
+status_message = ""
+status_timer = 0
+hit_flash_timer = 0
 
 -- 🎮 input and movement
 function _update()
@@ -77,8 +83,13 @@ function _update()
   
   -- player input
   player.vx = 0
-  if btn(0) then player.vx = -player_speed end  -- left
-  if btn(1) then player.vx = player_speed end   -- right
+  if player.reverse_controls then
+    if btn(0) then player.vx = player_speed end   -- left becomes right
+    if btn(1) then player.vx = -player_speed end  -- right becomes left
+  else
+    if btn(0) then player.vx = -player_speed end  -- left
+    if btn(1) then player.vx = player_speed end   -- right
+  end
   
   -- jumping
   if btn(4) and player.on_ground then
@@ -123,12 +134,23 @@ function _update()
   -- check collectibles
   check_collectibles()
   
+  -- check potion collisions
+  check_potion_collisions()
+  
   -- check enemy collisions
   check_enemy_collisions()
   
   -- check win condition
   if #collectibles == 0 then
     level_complete = true
+  end
+  
+  -- update potion effects
+  update_potion_effects()
+  
+  -- update hit flash timer
+  if hit_flash_timer > 0 then
+    hit_flash_timer -= 1
   end
 end
 
@@ -161,17 +183,56 @@ function _draw()
       end
     end
     
+    -- draw potions
+    for p in all(potions) do
+      spr(2, p.x, p.y)
+    end
+    
     -- draw enemies
     for e in all(enemies) do
       spr(e.sprite, e.x, e.y)
     end
     
     -- draw player
-    spr(0, player.x, player.y)
+    if hit_flash_timer > 0 and hit_flash_timer % 4 < 2 then
+      -- flash red when hit
+      spr(0, player.x, player.y, 1, 1, true)  -- flip horizontally to make it more obvious
+    else
+      spr(0, player.x, player.y)
+    end
     
     -- draw UI
     print("score: " .. score, 2, 2, 7)
     print("health: " .. player.health, 2, 10, 7)
+    
+    -- draw status message
+    if status_message ~= "" then
+      print(status_message, 64 - #status_message * 2, 50, 7)
+    end
+    
+    -- draw hit message
+    if hit_flash_timer > 0 and hit_flash_timer > 45 then
+      print("OUCH!", 64 - 10, 60, 8)
+    end
+    
+    -- draw potion effect timers
+    local y_offset = 18
+    if player.speed_boost then
+      print("speed boost: " .. flr(player.speed_boost/60) .. "s", 2, y_offset, 11)
+      y_offset += 8
+    end
+    if player.speed_slow then
+      print("speed slow: " .. flr(player.speed_slow/60) .. "s", 2, y_offset, 8)
+      y_offset += 8
+    end
+    if player.jump_boost then
+      print("jump boost: " .. flr(player.jump_boost/60) .. "s", 2, y_offset, 11)
+      y_offset += 8
+    end
+    if player.reverse_controls then
+      print("reverse: " .. flr(player.reverse_controls/60) .. "s", 2, y_offset, 8)
+      y_offset += 8
+    end
     
     -- game over screen
     if game_over then
@@ -243,6 +304,7 @@ function check_enemy_collisions()
   for e in all(enemies) do
     if check_collision(player, e) then
       player.health -= 1
+      hit_flash_timer = 60  -- flash for 1 second
       if player.health <= 0 then
         game_over = true
       else
@@ -250,6 +312,87 @@ function check_enemy_collisions()
         player.vy = -4
         player.x += (player.x < e.x) and -10 or 10
       end
+    end
+  end
+end
+
+function check_potion_collisions()
+  for p in all(potions) do
+    if check_collision(player, p) then
+      apply_potion_effect(p.effect)
+      del(potions, p)
+    end
+  end
+end
+
+function apply_potion_effect(effect)
+  if effect == "speed_boost" then
+    player.speed_boost = 600
+    player_speed = 4
+    status_message = "SPEED BOOST!"
+    status_timer = 120
+  elseif effect == "speed_slow" then
+    player.speed_slow = 600
+    player_speed = 1
+    status_message = "SPEED SLOW!"
+    status_timer = 120
+  elseif effect == "jump_boost" then
+    player.jump_boost = 600
+    jump_power = -8
+    status_message = "JUMP BOOST!"
+    status_timer = 120
+  elseif effect == "reverse_controls" then
+    player.reverse_controls = 600
+    status_message = "REVERSE CONTROLS!"
+    status_timer = 120
+  elseif effect == "health_restore" then
+    player.health = min(player.health + 1, 3)
+    status_message = "HEALTH +1!"
+    status_timer = 120
+  end
+end
+
+function update_potion_effects()
+  -- speed boost effect
+  if player.speed_boost then
+    player.speed_boost -= 1
+    if player.speed_boost <= 0 then
+      player.speed_boost = nil
+      player_speed = 2  -- reset to normal
+    end
+  end
+  
+  -- speed slow effect
+  if player.speed_slow then
+    player.speed_slow -= 1
+    if player.speed_slow <= 0 then
+      player.speed_slow = nil
+      player_speed = 2  -- reset to normal
+    end
+  end
+  
+  -- jump boost effect
+  if player.jump_boost then
+    player.jump_boost -= 1
+    if player.jump_boost <= 0 then
+      player.jump_boost = nil
+      jump_power = -6  -- reset to normal
+    end
+  end
+  
+  -- reverse controls effect
+  if player.reverse_controls then
+    player.reverse_controls -= 1
+    if player.reverse_controls <= 0 then
+      player.reverse_controls = nil
+    end
+  end
+  
+  -- update status message timer
+  if status_timer > 0 then
+    status_timer -= 1
+    if status_timer <= 0 then
+      status_message = ""
     end
   end
 end
@@ -276,14 +419,28 @@ function reset_game()
   
   -- reset enemies
   enemies = {}
-  add(enemies, {x=30, y=92, w=6, h=6, vx=1, color=8, health=1, sprite=flr(rnd(2))+2})
-  add(enemies, {x=90, y=52, w=6, h=6, vx=-1, color=8, health=1, sprite=flr(rnd(2))+2})
+  add(enemies, {x=30, y=92, w=6, h=6, vx=2, color=8, health=1, sprite=flr(rnd(2))+3})
+  add(enemies, {x=90, y=52, w=6, h=6, vx=-2, color=8, health=1, sprite=flr(rnd(2))+3})
   
   -- reset collectibles
   collectibles = {}
   add(collectibles, {x=25, y=90, w=8, h=8, collected=false})
   add(collectibles, {x=55, y=70, w=8, h=8, collected=false})
   add(collectibles, {x=85, y=50, w=8, h=8, collected=false})
+  
+  -- reset potions and clear effects
+  potions = {}
+  player.speed_boost = nil
+  player.speed_slow = nil
+  player.jump_boost = nil
+  player.reverse_controls = nil
+  player_speed = 2
+  jump_power = -6
+  
+  -- reset status message
+  status_message = ""
+  status_timer = 0
+  hit_flash_timer = 0
 end
 
 function next_level()
@@ -296,7 +453,7 @@ function next_level()
   add(platforms, {x=70, y=20, w=15, h=4})
   
   -- add more enemies
-  add(enemies, {x=45, y=22, w=6, h=6, vx=1, color=8, health=1, sprite=flr(rnd(2))+2})
+  add(enemies, {x=45, y=22, w=6, h=6, vx=2, color=8, health=1, sprite=flr(rnd(2))+3})
   
   -- add more collectibles
   add(collectibles, {x=42, y=20, w=8, h=8, collected=false})
@@ -304,4 +461,12 @@ function next_level()
   add(collectibles, {x=15, y=15, w=8, h=8, collected=false})
   add(collectibles, {x=95, y=35, w=8, h=8, collected=false})
   add(collectibles, {x=60, y=5, w=8, h=8, collected=false})
+  
+  -- chance to spawn a potion (20% chance)
+  if rnd() < 0.2 then
+    local effects = {"speed_boost", "speed_slow", "jump_boost", "reverse_controls", "health_restore"}
+    local effect = effects[flr(rnd(#effects))+1]
+    local is_good = effect == "speed_boost" or effect == "jump_boost" or effect == "health_restore"
+    add(potions, {x=flr(rnd(100))+10, y=flr(rnd(80))+20, w=8, h=8, effect=effect, duration=600, is_good=is_good})
+  end
 end
