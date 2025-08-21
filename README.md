@@ -2,6 +2,8 @@
 
 Exploring PICO-8 for hackweek.
 
+[Play game in browser](https://getsentry.github.io/hackweek-pico8-game)
+
 ## Quick Start
 
 ```bash
